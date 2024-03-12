@@ -5,6 +5,7 @@ const courseSchema = new Schema({
   name: String,
   description: String,
   creditHours: Number,
+  teacher: String,
   scores: [{ type: Schema.Types.ObjectId, ref: 'Score' }]
 })
 
