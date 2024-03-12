@@ -69,10 +69,14 @@ const addCourseWithScore = async (req, res) => {
   try {
     const { id, courseId } = req.params
     const course = courseId
+    const selectedCourse = await Course.findById(course)
     const newScore = await Score.create({ ...req.body, course })
     const student = await Student.findById(id)
     student.scores.push(newScore._id)
+
     await student.save()
+    selectedCourse.students.push(student)
+    await selectedCourse.save()
 
     await student.populate('scores')
     let totalCredits = 0

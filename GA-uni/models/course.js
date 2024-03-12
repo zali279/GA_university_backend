@@ -6,7 +6,8 @@ const courseSchema = new Schema({
   description: String,
   creditHours: Number,
   teacher: String,
-  scores: [{ type: Schema.Types.ObjectId, ref: 'Score' }]
+  // scores: [{ type: Schema.Types.ObjectId, ref: 'Score' }],
+  students: [{ type: Schema.Types.ObjectId, ref: 'Student' }]
 })
 
 module.exports = courseSchema

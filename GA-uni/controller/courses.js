@@ -1,4 +1,4 @@
-const { Course } = require('../models')
+const { Course, Student } = require('../models')
 
 const addCourse = async (req, res) => {
   try {
@@ -8,7 +8,17 @@ const addCourse = async (req, res) => {
     console.log(error)
   }
 }
-
+const getStudentsByCourse = async (req, res) => {
+  try {
+    const course = await Course.findOne({ name: req.params.courseName })
+    console.log('course', course)
+    await course.populate('students').execPopulate()
+    res.send(course)
+  } catch (error) {
+    console.log(error)
+  }
+}
 module.exports = {
-  addCourse
+  addCourse,
+  getStudentsByCourse
 }
