@@ -7,6 +7,7 @@ var logger = require('morgan')
 var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 const studentsRouter = require('./routes/students')
+const coursesRouter = require('./routes/courses')
 const db = require('./db')
 
 var app = express()
@@ -28,7 +29,7 @@ app.use('/students', studentsRouter)
 app.use(function (req, res, next) {
   next(createError(404))
 })
-
+app.use('/courses', coursesRouter)
 // error handler
 app.use(function (err, req, res, next) {
   // set locals, only providing error in development
