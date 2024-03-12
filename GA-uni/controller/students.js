@@ -23,6 +23,7 @@ const index = async (req, res) => {
     const studentsWithGPA = students.map((student) => {
       let totalCredits = 0
       let totalPoints = 0
+      // let creditHours = student.scores.course.creditHours
 
       if (student.scores.length > 0) {
         student.scores.forEach((score) => {
@@ -67,7 +68,8 @@ const deleteStudent = async (req, res) => {
 const addCourseWithScore = async (req, res) => {
   try {
     const { id, courseId } = req.params
-    const newScore = await Score.create({ ...req.body, courseId })
+    const course = courseId
+    const newScore = await Score.create({ ...req.body, course })
     const student = await Student.findById(id)
     student.scores.push(newScore._id)
     await student.save()
