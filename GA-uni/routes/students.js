@@ -11,5 +11,6 @@ router.delete('/:id', studentsCtrl.deleteStudent)
 
 router.post('/:id/courses/:courseId', studentsCtrl.addCourseWithScore)
 
-router.put('/:id/')
+router.put('/:id/courses/:courseId/scores/:scoreId', studentsCtrl.editScore)
+
 module.exports = router
