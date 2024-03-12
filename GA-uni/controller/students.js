@@ -101,14 +101,14 @@ const editScore = async (req, res) => {
 
     const student = await Student.findById(id).populate('scores')
 
-    const updatedStudentScores = student.scores.map((score) => {
-      if (score._id.toString() === scoreId) {
-        return { ...score.toObject(), ...req.body }
-      }
-      return score
-    })
-
-    student.scores = updatedStudentScores
+    const updatedScoreIndex = student.scores.findIndex(
+      (score) => score._id.toString() === scoreId
+    )
+    const updatedScore = {
+      ...student.scores[updatedScoreIndex].toObject(),
+      ...req.body
+    }
+    student.scores[updatedScoreIndex] = updatedScore
     await student.save()
     await student.populate('scores')
     let totalCredits = 0
@@ -126,11 +126,34 @@ const editScore = async (req, res) => {
     console.error(err)
   }
 }
+
+const removeCourseWithGrade = async (req, res) => {
+  const { id, scoreId } = req.params
+  const student = await Student.findById(id)
+  const scoreToRemove = await Score.findById(scoreId)
+  const scoreIndex = student.scores.indexOf(scoreToRemove._id)
+  student.scores.splice(scoreIndex, 1)
+  await student.save()
+  await Score.findByIdAndDelete(scoreId)
+  let totalCredits = 0
+  let totalPoints = 0
+  for (const score of student.scores) {
+    totalPoints += score.score * 3
+    totalCredits += 3
+  }
+  let gpa = 0
+  if (totalCredits !== 0) {
+    gpa = totalPoints / totalCredits
+  }
+
+  res.send({ student, gpa: parseFloat(gpa.toFixed(2)) })
+}
 module.exports = {
   index,
   show,
   addStudent,
   deleteStudent,
   addCourseWithScore,
-  editScore
+  editScore,
+  removeCourseWithGrade
 }
