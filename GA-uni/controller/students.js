@@ -14,7 +14,12 @@ const calculateGPA = async (student) => {
 }
 const index = async (req, res) => {
   try {
-    const students = await Student.find({}).populate('scores')
+    const students = await Student.find({}).populate({
+      path: 'scores',
+      populate: {
+        path: 'course'
+      }
+    })
     const studentsWithGPA = students.map((student) => {
       let totalCredits = 0
       let totalPoints = 0
@@ -104,7 +109,6 @@ const editScore = async (req, res) => {
     student.scores = updatedStudentScores
     await student.save()
     await student.populate('scores')
-    console.log('student', student)
     let totalCredits = 0
     let totalPoints = 0
     for (const score of student.scores) {
