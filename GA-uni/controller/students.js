@@ -27,7 +27,7 @@ const index = async (req, res) => {
       }
 
       const gpa = totalCredits !== 0 ? totalPoints / totalCredits : 0
-      return { ...student.toObject(), gpa }
+      return { ...student.toObject(), gpa: parseFloat(gpa.toFixed(2)) }
     })
 
     res.send(studentsWithGPA)
@@ -61,36 +61,26 @@ const deleteStudent = async (req, res) => {
 }
 const addCourseWithScore = async (req, res) => {
   try {
-    const { id } = req.params
-    // const { course, score, letter } = req.body
-    const newScore = await Score.create(req.body)
+    const { id, courseId } = req.params
+    const newScore = await Score.create({ ...req.body, courseId })
     const student = await Student.findById(id)
     student.scores.push(newScore._id)
     await student.save()
 
     await student.populate('scores')
-
-    // Calculate the GPA for the student
-    // const gpa = calculateGPA(student)
     let totalCredits = 0
     let totalPoints = 0
-    // student.scores.forEach((s) => {
-    //   //  const course = await Course.findById(score.course)
-    //   totalPoints += s.score * 3
-    //   totalCredits += 3
-    // })
     for (const score of student.scores) {
       totalPoints += score.score * 3
       totalCredits += 3
     }
-
     let gpa = 0
     if (totalCredits !== 0) {
       gpa = totalPoints / totalCredits
     }
     console.log(gpa)
 
-    res.send({ student, gpa })
+    res.send({ student, gpa: parseFloat(gpa.toFixed(2)) })
   } catch (err) {
     console.error(err)
   }
