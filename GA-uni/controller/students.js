@@ -1,26 +1,33 @@
-const { Student } = require('../models')
-const calculateGPA = (student) => {
+const { Student, Score, Course } = require('../models')
+
+const calculateGPA = async (student) => {
   let totalCredits = 0
   let totalPoints = 0
-  student.courses.forEach((course) => {
-    course.scores.forEach((score) => {
-      totalCredits += 1
-      totalPoints += score.score
-    })
+  student.scores.forEach((score) => {
+    //  const course = await Course.findById(score.course)
+    totalPoints += score.score * 3
+    totalCredits += 3
   })
-  if (totalCredits === 0) {
-    return 0.0
-  } else {
-    const gpa = totalPoints / totalCredits
-    return parseFloat(gpa.toFixed(2))
-  }
+
+  const gpa = totalPoints / totalCredits
+  return parseFloat(gpa.toFixed(2))
 }
 const index = async (req, res) => {
   try {
-    const students = await Student.find({}).populate('courses')
+    const students = await Student.find({}).populate('scores')
     const studentsWithGPA = students.map((student) => {
-      const gpa = student.calculateGPA()
-      return { ...student.toObject(), gpa }
+      let totalCredits = 0
+      let totalPoints = 0
+
+      if (student.scores.length > 0) {
+        student.scores.forEach((score) => {
+          totalPoints += score.score * 3
+          totalCredits += 3
+        })
+      }
+
+      const gpa = totalCredits !== 0 ? totalPoints / totalCredits : 0
+      return { ...student.toObject(), gpa: parseFloat(gpa.toFixed(2)) }
     })
 
     res.send(studentsWithGPA)
@@ -54,34 +61,61 @@ const deleteStudent = async (req, res) => {
 }
 const addCourseWithScore = async (req, res) => {
   try {
-    const { id } = req.params
-    const { courseName, score, letter } = req.body
+    const { id, courseId } = req.params
+    const newScore = await Score.create({ ...req.body, courseId })
     const student = await Student.findById(id)
-
-    const newScore = {
-      score,
-      letter
-    }
-    // Find the course by name
-    const existingCourse = student.courses.find(
-      (course) => course.name === courseName
-    )
-    if (existingCourse) {
-      // Add the new score to an existing course
-      existingCourse.scores.push(newScore)
-    } else {
-      // Create a new course and add the score
-      const newCourse = {
-        name: courseName,
-        scores: [newScore]
-      }
-      student.courses.push(newCourse)
-    }
-    // Save the updated student
+    student.scores.push(newScore._id)
     await student.save()
-    // Calculate the GPA for the student
-    const gpa = student.calculateGPA()
-    res.send({ student, gpa })
+
+    await student.populate('scores')
+    let totalCredits = 0
+    let totalPoints = 0
+    for (const score of student.scores) {
+      totalPoints += score.score * 3
+      totalCredits += 3
+    }
+    let gpa = 0
+    if (totalCredits !== 0) {
+      gpa = totalPoints / totalCredits
+    }
+    console.log(gpa)
+
+    res.send({ student, gpa: parseFloat(gpa.toFixed(2)) })
+  } catch (err) {
+    console.error(err)
+  }
+}
+
+const editScore = async (req, res) => {
+  try {
+    const { id, scoreId } = req.params
+
+    await Score.findByIdAndUpdate(scoreId, req.body)
+
+    const student = await Student.findById(id).populate('scores')
+
+    const updatedStudentScores = student.scores.map((score) => {
+      if (score._id.toString() === scoreId) {
+        return { ...score.toObject(), ...req.body }
+      }
+      return score
+    })
+
+    student.scores = updatedStudentScores
+    await student.save()
+    await student.populate('scores')
+    console.log('student', student)
+    let totalCredits = 0
+    let totalPoints = 0
+    for (const score of student.scores) {
+      totalPoints += score.score * 3
+      totalCredits += 3
+    }
+    let gpa = 0
+    if (totalCredits !== 0) {
+      gpa = totalPoints / totalCredits
+    }
+    res.send({ student, gpa: parseFloat(gpa.toFixed(2)) })
   } catch (err) {
     console.error(err)
   }
@@ -91,5 +125,6 @@ module.exports = {
   show,
   addStudent,
   deleteStudent,
-  addCourseWithScore
+  addCourseWithScore,
+  editScore
 }
