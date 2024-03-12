@@ -85,10 +85,46 @@ const addCourseWithScore = async (req, res) => {
     console.error(err)
   }
 }
+
+const editScore = async (req, res) => {
+  try {
+    const { id, scoreId } = req.params
+
+    await Score.findByIdAndUpdate(scoreId, req.body)
+
+    const student = await Student.findById(id).populate('scores')
+
+    const updatedStudentScores = student.scores.map((score) => {
+      if (score._id.toString() === scoreId) {
+        return { ...score.toObject(), ...req.body }
+      }
+      return score
+    })
+
+    student.scores = updatedStudentScores
+    await student.save()
+    await student.populate('scores')
+    console.log('student', student)
+    let totalCredits = 0
+    let totalPoints = 0
+    for (const score of student.scores) {
+      totalPoints += score.score * 3
+      totalCredits += 3
+    }
+    let gpa = 0
+    if (totalCredits !== 0) {
+      gpa = totalPoints / totalCredits
+    }
+    res.send({ student, gpa: parseFloat(gpa.toFixed(2)) })
+  } catch (err) {
+    console.error(err)
+  }
+}
 module.exports = {
   index,
   show,
   addStudent,
   deleteStudent,
-  addCourseWithScore
+  addCourseWithScore,
+  editScore
 }
