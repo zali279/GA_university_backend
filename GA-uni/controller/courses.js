@@ -11,7 +11,8 @@ const addCourse = async (req, res) => {
 const getStudentsByCourse = async (req, res) => {
   try {
     const course = await Course.findOne({ name: req.params.courseName })
-    await course.populate('students').execPopulate()
+    await course.populate('students')
+
     res.send(course.students)
   } catch (error) {
     console.log(error)
