@@ -35,9 +35,18 @@ const getOneCourse = async (req, res) => {
     console.log(error)
   }
 }
+const deleteCourse = async (req, res) => {
+  try {
+    await Course.findByIdAndDelete(req.params.courseId)
+    res.send({ message: 'Course deleted successfully' })
+  } catch (error) {
+    console.log(error)
+  }
+}
 module.exports = {
   addCourse,
   getStudentsByCourse,
   getAllCourse,
-  getOneCourse
+  getOneCourse,
+  deleteCourse
 }
