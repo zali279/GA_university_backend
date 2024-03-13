@@ -25,20 +25,28 @@ const getAllCourse = async (req, res) => {
     console.log(error)
   }
 }
-
-const getAllCourses = async (req, res) => {
+const getOneCourse = async (req, res) => {
   try {
-    const courses = await Course.find().populate('students', 'name');
-    res.json(courses);
+    const course = await Course.findById(req.params.courseId).populate(
+      'students'
+    )
+    res.send(course)
   } catch (error) {
-    res.status(500).send({
-      message: "Failed to retrieve courses",
-      error: error.message
-    });
+    console.log(error)
   }
-};
+}
+const deleteCourse = async (req, res) => {
+  try {
+    await Course.findByIdAndDelete(req.params.courseId)
+    res.send({ message: 'Course deleted successfully' })
+  } catch (error) {
+    console.log(error)
+  }
+}
 module.exports = {
   addCourse,
   getStudentsByCourse,
-  getAllCourses
+  getAllCourse,
+  getOneCourse,
+  deleteCourse
 }
