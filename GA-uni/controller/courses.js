@@ -25,8 +25,19 @@ const getAllCourse = async (req, res) => {
     console.log(error)
   }
 }
+const getOneCourse = async (req, res) => {
+  try {
+    const course = await Course.findById(req.params.courseId).populate(
+      'students'
+    )
+    res.send(course)
+  } catch (error) {
+    console.log(error)
+  }
+}
 module.exports = {
   addCourse,
   getStudentsByCourse,
-  getAllCourse
+  getAllCourse,
+  getOneCourse
 }
