@@ -3,15 +3,15 @@ var express = require('express')
 var path = require('path')
 var cookieParser = require('cookie-parser')
 var logger = require('morgan')
+const cors = require('cors')
 
 var indexRouter = require('./routes/index')
 var usersRouter = require('./routes/users')
 const studentsRouter = require('./routes/students')
 const coursesRouter = require('./routes/courses')
-const db = require('./db')
+const db = require('./config/data')
 
 var app = express()
-const cors = require('cors')
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))

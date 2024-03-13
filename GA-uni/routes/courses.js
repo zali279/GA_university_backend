@@ -9,4 +9,6 @@ router.delete('/:courseId', coursesCtrl.deleteCourse)
 
 router.post('/', coursesCtrl.addCourse)
 
+// router.get('/', coursesCtrl.getAllCourses)
+
 module.exports = router
