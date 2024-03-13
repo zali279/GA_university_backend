@@ -67,67 +67,58 @@ const deleteStudent = async (req, res) => {
 }
 const addCourseWithScore = async (req, res) => {
   try {
-    const { id, courseId } = req.params
-    const course = courseId
-    const selectedCourse = await Course.findById(course)
-    const newScore = await Score.create({ ...req.body, course })
-    const student = await Student.findById(id)
+    const { id: studentId } = req.params
+    const { courseId, grade } = req.body
+    const numericScore = convertGradeToScore(grade)
+
+    const student = await Student.findById(studentId)
+    const course = await Course.findById(courseId)
+
+    if (!student || !course) {
+      return res.status(404).send({ message: 'Student or Course not found.' })
+    }
+
+    const newScore = await Score.create({
+      score: numericScore,
+      letter: grade,
+      student: studentId,
+      course: courseId
+    })
+
     student.scores.push(newScore._id)
-
     await student.save()
-    selectedCourse.students.push(student)
-    await selectedCourse.save()
 
-    await student.populate('scores')
-    let totalCredits = 0
-    let totalPoints = 0
-    for (const score of student.scores) {
-      totalPoints += score.score * 3
-      totalCredits += 3
-    }
-    let gpa = 0
-    if (totalCredits !== 0) {
-      gpa = totalPoints / totalCredits
-    }
-    console.log(gpa)
-
-    res.send({ student, gpa: parseFloat(gpa.toFixed(2)) })
-  } catch (err) {
-    console.error(err)
+    res
+      .status(201)
+      .json({ message: 'Course and grade added successfully.', data: newScore })
+  } catch (error) {
+    console.log(error)
   }
+}
+const convertGradeToScore = (grade) => {
+  const gradeValues = { A: 4, B: 3, C: 2, D: 1, F: 0 }
+  return gradeValues[grade.toUpperCase()] || null
 }
 
 const editScore = async (req, res) => {
   try {
-    const { id, scoreId } = req.params
+    const { scoreId } = req.params
+    const { letter } = req.body 
+    const numericScore = convertGradeToScore(letter) 
 
-    await Score.findByIdAndUpdate(scoreId, req.body)
+    const score = await Score.findByIdAndUpdate(
+      scoreId,
+      { letter, score: numericScore },
+      { new: true }
+    ).populate('course')
 
-    const student = await Student.findById(id).populate('scores')
+    if (!score) {
+      return res.status(404).json({ message: 'Score not found.' })
+    }
 
-    const updatedScoreIndex = student.scores.findIndex(
-      (score) => score._id.toString() === scoreId
-    )
-    const updatedScore = {
-      ...student.scores[updatedScoreIndex].toObject(),
-      ...req.body
-    }
-    student.scores[updatedScoreIndex] = updatedScore
-    await student.save()
-    await student.populate('scores')
-    let totalCredits = 0
-    let totalPoints = 0
-    for (const score of student.scores) {
-      totalPoints += score.score * 3
-      totalCredits += 3
-    }
-    let gpa = 0
-    if (totalCredits !== 0) {
-      gpa = totalPoints / totalCredits
-    }
-    res.send({ student, gpa: parseFloat(gpa.toFixed(2)) })
-  } catch (err) {
-    console.error(err)
+    res.json({ message: 'Grade updated successfully.', data: score })
+  } catch (error) {
+    console.log(error)
   }
 }
 
