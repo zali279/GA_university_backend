@@ -18,7 +18,20 @@ const getStudentsByCourse = async (req, res) => {
     console.log(error)
   }
 }
+
+const getAllCourses = async (req, res) => {
+  try {
+    const courses = await Course.find().populate('students', 'name');
+    res.json(courses);
+  } catch (error) {
+    res.status(500).send({
+      message: "Failed to retrieve courses",
+      error: error.message
+    });
+  }
+};
 module.exports = {
   addCourse,
-  getStudentsByCourse
+  getStudentsByCourse,
+  getAllCourses
 }
